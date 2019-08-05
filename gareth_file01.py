@@ -27,6 +27,8 @@ P = (
 
 # Check that the above point actually lies on the elliptic curve
 #     y^2 = x^3 + ax + b.
+#		x = 0
+# 		b = 7
 x = P[0]
 y = P[1]
 left_side = (y**2) % p
