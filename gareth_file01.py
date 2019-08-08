@@ -16,6 +16,7 @@ assert p == p_hex
 # Check that the value of `p` given in the book matches the mathematical
 # expression given in the NIST spec.
 p_math = 2**256 - 2**32 - 2**9 - 2**8 - 2**7 - 2**6 - 2**4 - 2**0
+print(p_math)
 assert p == p_math
 
 

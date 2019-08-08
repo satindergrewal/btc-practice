@@ -7,7 +7,37 @@ import (
 	//"crypto/sha256"
 	"fmt"
 	"math/big"
+	"math"
+	"strconv"
 )
+
+func FloatToString(input_num float64) string {
+	// to convert a float number to a string
+	return strconv.FormatFloat(input_num, 'f', 0, 64)
+}
+
+func RecursivePower(base int, exponent int) int {
+	if exponent != 0 {
+		return (base * RecursivePower(base, exponent-1))
+	} else {
+		return 1
+	}
+}
+
+func FloatToBigInt(val float64) *big.Int {
+	bigval := new(big.Float)
+	bigval.SetFloat64(val)
+	
+	coin := new(big.Float)
+	coin.SetInt(big.NewInt(1000000000000000000))
+	
+	bigval.Mul(bigval, coin)
+	
+	result := new(big.Int)
+	bigval.Int(result)
+
+	return result
+}
 
 func main() {
 	// The characteristic of secp256k1; the order of the corresponding finite field.
@@ -39,7 +69,23 @@ func main() {
 	// Check that the value of `p` given in the book matches the mathematical
 	// expression given in the NIST spec.
 	//2 ^ 256
-	p_math = 2**256 - 2**32 - 2**9 - 2**8 - 2**7 - 2**6 - 2**4 - 2**0
+	p_pow := math.Pow(2, 256) - math.Pow(2, 32) - math.Pow(2, 9) - math.Pow(2, 8) - math.Pow(2, 7) - math.Pow(2, 6) - math.Pow(2, 4) - math.Pow(2, 0)
+	fmt.Printf("%.0f\n", p_pow)
+	//p_math := new(big.Int)
+	//p_math, _ = p_math.SetString(FloatToString(), 10)
+	//p_math, _ = p_math.SetString(FloatToString(math.Pow(2, 256) - math.Pow(2, 32)), 10)
+	//fmt.Printf("%.0f\n", p_math)
+	//fmt.Println(p_math)
+	//fmt.Println(p.Cmp(p_math))
 	//assert p == p_math
 
+	//fmt.Println(FloatToString(math.Pow(2, 256)))
+
+	fmt.Printf("%f\n",math.Pow(2, 256))
+	//pow := new(big.Int)
+	//pow.SetInt(big.NewInt(4294967296))
+	//pow = 4294967296
+	pow := math.Pow(2, 256)-FloatToBigInt(float64(4294967296))
+	fmt.Printf("%d\n", pow)
+	fmt.Printf("%f\n",math.Pow(2, 9))
 }
