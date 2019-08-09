@@ -68,8 +68,8 @@ func main() {
 	//		x = 0
 	// 		b = 7
 	//left_side = (y**2) % p
-	left_side := big.NewInt(0).Exp(y, big.NewInt(2), nil)
-	left_side.Mod(left_side, p)
+	left_side := big.NewInt(0).Exp(y, big.NewInt(2), p) // can just use p instead of nil to store get mod value as output
+	//left_side.Mod(left_side, p)
 	fmt.Println("y^2 = ",left_side)
 
 	//right_side = (x**3 + 7) % p
@@ -84,6 +84,4 @@ func main() {
 	} else {
 		fmt.Println("Left side matches right side")
 	}
-
-
 }
