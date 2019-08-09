@@ -7,37 +7,8 @@ import (
 	//"crypto/sha256"
 	"fmt"
 	"math/big"
-	"math"
-	"strconv"
+	//"math"
 )
-
-func FloatToString(input_num float64) string {
-	// to convert a float number to a string
-	return strconv.FormatFloat(input_num, 'f', 0, 64)
-}
-
-func RecursivePower(base int, exponent int) int {
-	if exponent != 0 {
-		return (base * RecursivePower(base, exponent-1))
-	} else {
-		return 1
-	}
-}
-
-func FloatToBigInt(val float64) *big.Int {
-	bigval := new(big.Float)
-	bigval.SetFloat64(val)
-	
-	coin := new(big.Float)
-	coin.SetInt(big.NewInt(1000000000000000000))
-	
-	bigval.Mul(bigval, coin)
-	
-	result := new(big.Int)
-	bigval.Int(result)
-
-	return result
-}
 
 func main() {
 	// The characteristic of secp256k1; the order of the corresponding finite field.
@@ -68,24 +39,51 @@ func main() {
 
 	// Check that the value of `p` given in the book matches the mathematical
 	// expression given in the NIST spec.
-	//2 ^ 256
-	p_pow := math.Pow(2, 256) - math.Pow(2, 32) - math.Pow(2, 9) - math.Pow(2, 8) - math.Pow(2, 7) - math.Pow(2, 6) - math.Pow(2, 4) - math.Pow(2, 0)
-	fmt.Printf("%.0f\n", p_pow)
-	//p_math := new(big.Int)
-	//p_math, _ = p_math.SetString(FloatToString(), 10)
-	//p_math, _ = p_math.SetString(FloatToString(math.Pow(2, 256) - math.Pow(2, 32)), 10)
-	//fmt.Printf("%.0f\n", p_math)
-	//fmt.Println(p_math)
-	//fmt.Println(p.Cmp(p_math))
-	//assert p == p_math
+	// Use this example by Gareth: https://play.golang.org/p/gazNAmBasle
+	// Or use this second better, smaller version of the same example: https://play.golang.org/p/WtK1OqNA8LJ
+	p_math := big.NewInt(0)
+	p_math.Exp(big.NewInt(2), big.NewInt(256), nil)
+	p_math.Sub(p_math, big.NewInt(1<<32 + 1<<9 + 1<<8 + 1<<7 + 1<<6 + 1<<4 + 1))
+	fmt.Println(p_math)
 
-	//fmt.Println(FloatToString(math.Pow(2, 256)))
 
-	fmt.Printf("%f\n",math.Pow(2, 256))
-	//pow := new(big.Int)
-	//pow.SetInt(big.NewInt(4294967296))
-	//pow = 4294967296
-	pow := math.Pow(2, 256)-FloatToBigInt(float64(4294967296))
-	fmt.Printf("%d\n", pow)
-	fmt.Printf("%f\n",math.Pow(2, 9))
+	// Example point on the curve 'secp256k1'.
+	x := new(big.Int)
+	x, ok = x.SetString("55066263022277343669578718895168534326250603453777594175500187360389116729240", 10)
+	if !ok {
+		fmt.Printf("NOT WORKING!")
+		return
+	}
+	y := new(big.Int)
+	y, ok = y.SetString("32670510020758816978083085130507043184471273380659243275938904335757337482424", 10)
+	if !ok {
+		fmt.Printf("NOT WORKING!")
+		return
+	}
+	fmt.Println(x)
+	fmt.Println(y)
+    
+    // Check that the above point actually lies on the elliptic curve
+	//     y^2 = x^3 + ax + b.
+	//		x = 0
+	// 		b = 7
+	//left_side = (y**2) % p
+	left_side := big.NewInt(0).Exp(y, big.NewInt(2), nil)
+	left_side.Mod(left_side, p)
+	fmt.Println("y^2 = ",left_side)
+
+	//right_side = (x**3 + 7) % p
+	right_side := big.NewInt(0).Exp(x, big.NewInt(3), nil)
+	right_side.Add(right_side, big.NewInt(7))
+	right_side.Mod(right_side, p)
+	fmt.Println("x^3 + ax + b = ",right_side)
+	//assert left_side == right_side
+
+	if left_side.Cmp(right_side) != 0 {
+		panic("left_side is not equals to right_side")
+	} else {
+		fmt.Println("Left side matches right side")
+	}
+
+
 }
