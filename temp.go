@@ -2,23 +2,57 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"math/big"
 )
 
+func primesLessThan(n *big.Int) (primes []big.Int) {
+	var one big.Int
+	one.SetInt64(1)
+	var i big.Int
+	i.SetInt64(1)
+	for i.Cmp(n) < 0 {
+		var result big.Int
+		result.Set(&i)
+		fmt.Println(result.String())
+		primes = append(primes, result)
+		i.Add(&i, &one)
+	}
+	return
+}
+
 func main() {
-	a2 := big.NewInt(2)
-	b256 := big.NewInt(256)
-	b32 := big.NewInt(32)
-	b9 := big.NewInt(9)
-	//b8 := big.NewInt(8)
-	//b7 := big.NewInt(7)
-	//b6 := big.NewInt(6)
-	//b4 := big.NewInt(4)
-	//b0 := big.NewInt(0)
-	sub1 := big.NewInt(0).Exp(a2, b256, nil)
-	sub2 := big.NewInt(0).Exp(a2, b32, nil)
-	sub3 := big.NewInt(0).Exp(a2, b9, nil)
-	x := big.NewInt(0).Sub(sub1, sub2)
-	y := big.NewInt(0).Sub(x, )
+	//primes := primesLessThan(big.NewInt(5))
+	//for _, p := range primes {
+	//fmt.Println(p.String())
+	//}
+
+	//var P []big.Int
+	//P[0].SetInt64(1)
+	x := new(big.Int)
+	x, ok := x.SetString("55066263022277343669578718895168534326250603453777594175500187360389116729240", 10)
+	if !ok {
+		log.Fatalf("big Int value did not set")
+		return
+	}
 	fmt.Println(x)
+
+	y := new(big.Int)
+	y, ok = y.SetString("32670510020758816978083085130507043184471273380659243275938904335757337482424", 10)
+	if !ok {
+		log.Fatalf("big Int value did not set")
+		return
+	}
+	fmt.Println(y)
+
+	var P [2]big.Int
+	//P[0] = *P[0].SetInt64(1)
+	P[0] = *x
+	P[1] = *y
+	fmt.Printf("%t\n", P)
+
+	if P[0].Cmp(x) != 0 {
+		panic("p is not equals to p_hex")
+		//return errors.New("The point does not lie on the elliptic curve")
+	}
 }
