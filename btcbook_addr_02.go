@@ -34,15 +34,31 @@ func main() {
 	// Secp256k1 parameters.  See:
 	//     https://en.bitcoin.it/wiki/Secp256k1
 	//     https://www.secg.org/sec2-v2.pdf - Section 2.4.1.
+	// Defining p
 	p := big.NewInt(0)
 	p.Exp(big.NewInt(2), big.NewInt(256), nil)
 	p.Sub(p, big.NewInt(1<<32+1<<9+1<<8+1<<7+1<<6+1<<4+1))
 	//fmt.Println(p)
 
-	/*G = Point(
-	0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798,
-	0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8,
-	)
-	*/
+	// Defining G
+	x := new(big.Int)
+	x, ok = x.SetString("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16)
+	if !ok {
+		log.Fatalf("big Int value did not set")
+		return
+	}
+	y := new(big.Int)
+	y, ok = y.SetString("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16)
+	if !ok {
+		log.Fatalf("big Int value did not set")
+		return
+	}
+	//fmt.Println(x)
+	//fmt.Println(y)
+
+	var G [2]big.Int
+	G[0] = *x
+	G[1] = *y
+	fmt.Printf("%d\n", G[0])
 
 }
