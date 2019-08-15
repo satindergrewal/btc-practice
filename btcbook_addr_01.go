@@ -13,8 +13,13 @@ import (
 	"log"
 )
 
-func ec_valid(P *[2]big.Int) error {
-	fmt.Printf("%t\n", P)
+type Point struct {
+	x big.Int
+	y big.Int
+}
+
+func ec_valid(P *Point) error {
+	//fmt.Printf("%t\n", P)
 	// The characteristic of secp256k1; the order of the corresponding finite field.
 	// defined big int, as the code was throwing error "constant 115...663 overflows int"
 	p := new(big.Int)
@@ -71,12 +76,12 @@ func ec_valid(P *[2]big.Int) error {
 	//		x = 0
 	// 		b = 7
 	// can just use p instead of nil to store get mod value as output
-	left_side := big.NewInt(0).Exp(&P[1], big.NewInt(2), p)
+	left_side := big.NewInt(0).Exp(&P.y, big.NewInt(2), p)
 	// left_side.Mod(left_side, p)
 	//fmt.Println("y^2 = ",left_side)
 
 	//right_side = (x**3 + 7) % p
-	right_side := big.NewInt(0).Exp(&P[0], big.NewInt(3), nil)
+	right_side := big.NewInt(0).Exp(&P.x, big.NewInt(3), nil)
 	right_side.Add(right_side, big.NewInt(7))
 	right_side.Mod(right_side, p)
 	//fmt.Println("x^3 + ax + b = ",right_side)
@@ -103,10 +108,11 @@ func main() {
 		return
 	}
 
-	var P [2]big.Int
+	var P Point
+	//var P [2]big.Int
 	//P[0] = *P[0].SetInt64(1)
-	P[0] = *x
-	P[1] = *y
+	P.x = *x
+	P.y = *y
 	//fmt.Printf("%t\n", P)
 
 	err := ec_valid(&P)
@@ -115,4 +121,10 @@ func main() {
 	} else {
 		fmt.Println("Yes the code works!")
 	}
+
+	/*
+		var G Point
+		G.x = *x
+		fmt.Println(G.x)
+	*/
 }
