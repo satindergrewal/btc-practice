@@ -14,6 +14,18 @@ type Point struct {
 	y big.Int
 }
 
+func ec_p() big.Int {
+	// Secp256k1 parameters.  See:
+	//     https://en.bitcoin.it/wiki/Secp256k1
+	//     https://www.secg.org/sec2-v2.pdf - Section 2.4.1.
+	// Defining p
+	p := big.NewInt(0)
+	p.Exp(big.NewInt(2), big.NewInt(256), nil)
+	p.Sub(p, big.NewInt(1<<32+1<<9+1<<8+1<<7+1<<6+1<<4+1))
+	//fmt.Println(p)
+	return *p
+}
+
 // Elliptic curve point addition.  Unneeded side-cases are omitted for
 // simplicity.  See:
 //     https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Point_addition
@@ -23,20 +35,32 @@ type Point struct {
 func ec_point_add(P, Q *Point) Point {
 	fmt.Println(P)
 	fmt.Println(Q)
-	return *P
+
+	p := *big.NewInt(0)
+	p = ec_p()
+	//fmt.Println("value of p is: ", p)
+
 	/*if !P {
 		return Q
 	}
 	return P*/
 
-	/*if P == Q:
-	        slope = 3*P.x**2 * pow(2*P.y, p-2, p)  # 3Px^2 / 2Py
-	    else:
-	        slope = (Q.y - P.y) * pow(Q.x - P.x, p-2, p)  # (Qy - Py) / (Qx - Px)
-	    R = Point()
-	    R.x = (slope**2 - P.x - Q.x) % p  # (slope^2 - Px - Qx)
-	    R.y = (slope*(P.x - R.x) - P.y) % p  # slope*(Px - Rx) - Py
-		return R*/
+	threepx := big.NewInt(0).Mul(big.NewInt(3), big.NewInt(big.NewInt(0).Exp(&P.x, big.NewInt(2), nil)))
+	fmt.Println(threepx)
+	//slope := big.NewInt(0).Mul(big.NewInt(3), big.NewInt(big.NewInt(0).Exp(&P.x, big.NewInt(2), nil))) * big.NewInt(0).Exp(&P.y, big.NewInt(2), p) // 3Px^2 / 2Py
+	//fmt.Println(slope)
+
+	/*if P == Q {
+		slope := 3 * big.NewInt(0).Exp(&P.x, big.NewInt(2), nil) * big.NewInt(0).Exp(&P.y, big.NewInt(2), p) // 3Px^2 / 2Py
+	} else {
+		slope := (Q.y - P.y) * pow(Q.x-P.x, p-2, p) // (Qy - Py) / (Qx - Px)
+	}*/
+	return *P
+
+	/*R = Point()
+	R.x = (slope**2 - P.x - Q.x) % p  # (slope^2 - Px - Qx)
+	R.y = (slope*(P.x - R.x) - P.y) % p  # slope*(Px - Rx) - Py
+	return R*/
 }
 
 func main() {
@@ -61,15 +85,6 @@ func main() {
 	}
 	fmt.Printf("private_key: %d\n", private_key)
 
-	// Secp256k1 parameters.  See:
-	//     https://en.bitcoin.it/wiki/Secp256k1
-	//     https://www.secg.org/sec2-v2.pdf - Section 2.4.1.
-	// Defining p
-	p := big.NewInt(0)
-	p.Exp(big.NewInt(2), big.NewInt(256), nil)
-	p.Sub(p, big.NewInt(1<<32+1<<9+1<<8+1<<7+1<<6+1<<4+1))
-	//fmt.Println(p)
-
 	// Defining G
 	x := new(big.Int)
 	x, ok = x.SetString("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16)
@@ -89,6 +104,10 @@ func main() {
 	var G Point
 	G.x = *x
 	G.y = *y
-	fmt.Printf("%d\n", G.x)
+	//fmt.Printf("%d\n", G.x)
+
+	var P Point
+	P = ec_point_add(&G, &G)
+	fmt.Println(P)
 
 }
