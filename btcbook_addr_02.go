@@ -20,19 +20,24 @@ type Point struct {
 //     https://stackoverflow.com/a/31089415
 //     https://en.wikipedia.org/wiki/Modular_multiplicative_inverse#Using_Euler's_theorem
 //     https://crypto.stanford.edu/pbc/notes/elliptic/explicit.html
-/*func ec_point_add(P, Q) Point {
-    if not P:
-        return Q
+func ec_point_add(P, Q *Point) Point {
+	fmt.Println(P)
+	fmt.Println(Q)
+	return *P
+	/*if !P {
+		return Q
+	}
+	return P*/
 
-    if P == Q:
-        slope = 3*P.x**2 * pow(2*P.y, p-2, p)  # 3Px^2 / 2Py
-    else:
-        slope = (Q.y - P.y) * pow(Q.x - P.x, p-2, p)  # (Qy - Py) / (Qx - Px)
-    R = Point()
-    R.x = (slope**2 - P.x - Q.x) % p  # (slope^2 - Px - Qx)
-    R.y = (slope*(P.x - R.x) - P.y) % p  # slope*(Px - Rx) - Py
-	return R
-}*/
+	/*if P == Q:
+	        slope = 3*P.x**2 * pow(2*P.y, p-2, p)  # 3Px^2 / 2Py
+	    else:
+	        slope = (Q.y - P.y) * pow(Q.x - P.x, p-2, p)  # (Qy - Py) / (Qx - Px)
+	    R = Point()
+	    R.x = (slope**2 - P.x - Q.x) % p  # (slope^2 - Px - Qx)
+	    R.y = (slope*(P.x - R.x) - P.y) % p  # slope*(Px - Rx) - Py
+		return R*/
+}
 
 func main() {
 	// Please note that the following code is a demo.  Edge cases and error
