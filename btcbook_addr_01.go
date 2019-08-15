@@ -7,12 +7,14 @@ import (
 	//"crypto/sha256"
 	"fmt"
 	"math/big"
+
 	//"math"
 	"errors"
 	"log"
 )
 
-func ec_valid(x, y *big.Int) error {
+func ec_valid(P *[2]big.Int) error {
+	fmt.Printf("%t\n", P)
 	// The characteristic of secp256k1; the order of the corresponding finite field.
 	// defined big int, as the code was throwing error "constant 115...663 overflows int"
 	p := new(big.Int)
@@ -45,9 +47,8 @@ func ec_valid(x, y *big.Int) error {
 	// Or use this second better, smaller version of the same example: https://play.golang.org/p/WtK1OqNA8LJ
 	p_math := big.NewInt(0)
 	p_math.Exp(big.NewInt(2), big.NewInt(256), nil)
-	p_math.Sub(p_math, big.NewInt(1<<32 + 1<<9 + 1<<8 + 1<<7 + 1<<6 + 1<<4 + 1))
+	p_math.Sub(p_math, big.NewInt(1<<32+1<<9+1<<8+1<<7+1<<6+1<<4+1))
 	//fmt.Println(p_math)
-
 
 	// Example point on the curve 'secp256k1'.
 	/*x := new(big.Int)
@@ -64,18 +65,18 @@ func ec_valid(x, y *big.Int) error {
 	}*/
 	//fmt.Println(x)
 	//fmt.Println(y)
-    
-    // Check that the above point actually lies on the elliptic curve
+
+	// Check that the above point actually lies on the elliptic curve
 	//     y^2 = x^3 + ax + b.
 	//		x = 0
 	// 		b = 7
 	// can just use p instead of nil to store get mod value as output
-	left_side := big.NewInt(0).Exp(y, big.NewInt(2), p)
+	left_side := big.NewInt(0).Exp(&P[1], big.NewInt(2), p)
 	// left_side.Mod(left_side, p)
 	//fmt.Println("y^2 = ",left_side)
 
 	//right_side = (x**3 + 7) % p
-	right_side := big.NewInt(0).Exp(x, big.NewInt(3), nil)
+	right_side := big.NewInt(0).Exp(&P[0], big.NewInt(3), nil)
 	right_side.Add(right_side, big.NewInt(7))
 	right_side.Mod(right_side, p)
 	//fmt.Println("x^3 + ax + b = ",right_side)
@@ -102,7 +103,13 @@ func main() {
 		return
 	}
 
-	err := ec_valid(x, y)
+	var P [2]big.Int
+	//P[0] = *P[0].SetInt64(1)
+	P[0] = *x
+	P[1] = *y
+	//fmt.Printf("%t\n", P)
+
+	err := ec_valid(&P)
 	if err != nil {
 		fmt.Println(err)
 	} else {
