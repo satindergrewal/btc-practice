@@ -81,9 +81,9 @@ func main() {
 	//fmt.Println(x)
 	//fmt.Println(y)
 
-	var G [2]big.Int
-	G[0] = *x
-	G[1] = *y
-	fmt.Printf("%d\n", G[0])
+	var G Point
+	G.x = *x
+	G.y = *y
+	fmt.Printf("%d\n", G.x)
 
 }
