@@ -30,8 +30,8 @@ func ec_G() Point {
 	var G = Point{new(big.Int), new(big.Int)}
 	G.x.SetString("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16)
 	G.y.SetString("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16)
-	fmt.Println(G.x)
-	fmt.Println(G.y)
+	//fmt.Println(G.x)
+	//fmt.Println(G.y)
 	return G
 }
 
@@ -43,7 +43,8 @@ func ec_G() Point {
 //     https://crypto.stanford.edu/pbc/notes/elliptic/explicit.html
 func (R *Point) ec_point_add(P, Q *Point) *Point {
 	//fmt.Println(P)
-	//fmt.Println(Q)
+	//fmt.Println("Qx: ", Q.x)
+	//fmt.Println("Qy: ", Q.y)
 
 	if big.NewInt(0).Cmp(P.x) == 0 && big.NewInt(0).Cmp(P.y) == 0 {
 		return Q
@@ -51,7 +52,7 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 
 	p := big.NewInt(0)
 	p = ec_p()
-	fmt.Println("value of p is: ", p)
+	//fmt.Println("value of p is: ", p)
 
 	slope := big.NewInt(0)
 
@@ -63,7 +64,7 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 		psub2 := big.NewInt(0).Sub(p, big.NewInt(2))            // p-2
 		expo := big.NewInt(0).Exp(pymul2, psub2, p)             // pow(2*P.y, p-2, p)
 		slope = big.NewInt(0).Mul(threepxpow2, expo)            // 3Px^2 / 2Py
-		fmt.Println("\n\nSLOPE 1: ", slope)
+		//fmt.Println("\n\nSLOPE 1: ", slope)
 	} else {
 		// slope = (Q.y - P.y) * pow(Q.x - P.x, p-2, p)  # (Qy - Py) / (Qx - Px)
 		qysubpy := big.NewInt(0).Sub(Q.y, P.y)       // Qy - Py
@@ -71,7 +72,7 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 		psub2 := big.NewInt(0).Sub(p, big.NewInt(2)) // p-2
 		expo := big.NewInt(0).Exp(qxsubpx, psub2, p) // pow(Q.x - P.x, p-2, p)
 		slope = big.NewInt(0).Mul(qysubpy, expo)     // (Q.y - P.y) * pow(Q.x - P.x, p-2, p)
-		fmt.Println("\n\nSLOPE 2: ", slope)
+		//fmt.Println("\n\nSLOPE 2: ", slope)
 	}
 
 	rx := big.NewInt(0).Exp(slope, big.NewInt(2), nil) // slope^2
@@ -97,9 +98,9 @@ func (Q *Point) ec_point_multiply(d *big.Int, P *Point) Point {
 	Q.x = big.NewInt(0)
 	Q.y = big.NewInt(0)
 
-	fmt.Println("Value of d: ", d)
-	fmt.Println("Value of d.Bit(0): ", d.Bit(0))
-	fmt.Println("BitLen of d: ", d.BitLen())
+	//fmt.Println("Value of d: ", d)
+	//fmt.Println("Value of d.Bit(0): ", d.Bit(0))
+	//fmt.Println("BitLen of d: ", d.BitLen())
 
 	for i := 0; i <= d.BitLen(); i++ {
 		//fmt.Println(i, d.Bit(i))
@@ -110,6 +111,7 @@ func (Q *Point) ec_point_multiply(d *big.Int, P *Point) Point {
 			N.ec_point_add(N, N)
 			//fmt.Println("N is: ", N.x)
 		}
+		d.Rsh(d, 1)
 	}
 
 	//	while d:
@@ -117,6 +119,7 @@ func (Q *Point) ec_point_multiply(d *big.Int, P *Point) Point {
 	//	      Q = ec_point_add(Q, N)
 	//	  N = ec_point_add(N, N)
 	//	  d >>= 1
+	fmt.Println("ec multiply return: ", Q.x, Q.y)
 	return *Q
 }
 
