@@ -106,14 +106,27 @@ func ec_point_add(P, Q *Point) Point {
 // Double-and-add algorithm with increasing index described here:
 //     https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Double-and-add
 func ec_point_multiply(d *big.Int, P *Point) Point {
-	//N := &P
+	N := &P
 	var Q Point
 	Q.x = *big.NewInt(0)
 	Q.y = *big.NewInt(0)
 
-	fmt.Println("Value of D: ", &d)
+	fmt.Println("Value of d: ", d.Bit(0))
+	fmt.Println("BitLen of d: ", d.BitLen())
 
 	//fmt.Println(d & big.NewInt(1))
+
+	for i := 0; i <= d.BitLen(); i++ {
+		//fmt.Println(i, d.Bit(i))
+		if d.Bit(i) == 1 {
+			//fmt.Println(i, d.Bit(i))
+			Q = ec_point_add(&Q, *N)
+			//fmt.Println(&Q)
+		} else {
+			//*N = ec_point_add(*N, *N)
+			fmt.Println("N is: ", *N)
+		}
+	}
 
 	/*while d:
 	  if d & 1:
