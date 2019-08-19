@@ -67,10 +67,8 @@ func ec_point_add(P, Q *Point) Point {
 	}
 	return P*/
 
-	threepx := big.NewInt(0).Mul(big.NewInt(3), big.NewInt(big.NewInt(0).Exp(&P.x, big.NewInt(2), nil)))
-	fmt.Println(threepx)
-	//slope := big.NewInt(0).Mul(big.NewInt(3), big.NewInt(big.NewInt(0).Exp(&P.x, big.NewInt(2), nil))) * big.NewInt(0).Exp(&P.y, big.NewInt(2), p) // 3Px^2 / 2Py
-	//fmt.Println(slope)
+	slope := big.NewInt(0).Mul(big.NewInt(0).Mul(big.NewInt(3), big.NewInt(0).Exp(&P.x, big.NewInt(2), nil)), big.NewInt(0).Exp(&P.y, big.NewInt(2), &p)) // 3Px^2 / 2Py
+	fmt.Println("\n\n", slope)
 
 	/*if P == Q {
 		slope := 3 * big.NewInt(0).Exp(&P.x, big.NewInt(2), nil) * big.NewInt(0).Exp(&P.y, big.NewInt(2), p) // 3Px^2 / 2Py
