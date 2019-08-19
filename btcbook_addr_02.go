@@ -63,7 +63,7 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 		psub2 := big.NewInt(0).Sub(p, big.NewInt(2))            // p-2
 		expo := big.NewInt(0).Exp(pymul2, psub2, p)             // pow(2*P.y, p-2, p)
 		slope = big.NewInt(0).Mul(threepxpow2, expo)            // 3Px^2 / 2Py
-		//fmt.Println("\n\nSLOPE 1: ", slope)
+		fmt.Println("\n\nSLOPE 1: ", slope)
 	} else {
 		// slope = (Q.y - P.y) * pow(Q.x - P.x, p-2, p)  # (Qy - Py) / (Qx - Px)
 		qysubpy := big.NewInt(0).Sub(Q.y, P.y)       // Qy - Py
@@ -71,7 +71,7 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 		psub2 := big.NewInt(0).Sub(p, big.NewInt(2)) // p-2
 		expo := big.NewInt(0).Exp(qxsubpx, psub2, p) // pow(Q.x - P.x, p-2, p)
 		slope = big.NewInt(0).Mul(qysubpy, expo)     // (Q.y - P.y) * pow(Q.x - P.x, p-2, p)
-		//fmt.Println("\n\nSLOPE 2: ", slope)
+		fmt.Println("\n\nSLOPE 2: ", slope)
 	}
 
 	rx := big.NewInt(0).Exp(slope, big.NewInt(2), nil) // slope^2
@@ -104,13 +104,11 @@ func (Q *Point) ec_point_multiply(d *big.Int, P *Point) Point {
 	for i := 0; i <= d.BitLen(); i++ {
 		//fmt.Println(i, d.Bit(i))
 		if d.Bit(i) == 1 {
-			fmt.Println(i, d.Bit(i))
 			Q.ec_point_add(Q, N)
-			fmt.Println(Q.x)
-			fmt.Println(Q.y)
+			//fmt.Println(i, d.Bit(i), Q.x, Q.y)
 		} else {
-			//*N = ec_point_add(*N, *N)
-			//fmt.Println("N is: ", *N)
+			N.ec_point_add(N, N)
+			//fmt.Println("N is: ", N.x)
 		}
 	}
 
@@ -149,18 +147,21 @@ func main() {
 	fmt.Printf("Gx: %d\n", G.x)
 	fmt.Printf("Gy: %d\n\n", G.y)
 
-	var G2 Point
-	G2.ec_point_add(&G, &G)
-	//fmt.Println("Value of G2: ", G2)
-	fmt.Printf("G2x: %d\n", G2.x)
-	fmt.Printf("G2y: %d\n", G2.y)
+	/*
+		var G2 Point
+		G2.ec_point_add(&G, &G)
+		//fmt.Println("Value of G2: ", G2)
+		fmt.Printf("G2x: %d\n", G2.x)
+		fmt.Printf("G2y: %d\n", G2.y)
 
-	//theeg := ec_point_add(&G, &P)
-	//fmt.Printf("theeg.x: %d\n", &theeg.x)
-	//fmt.Printf("theeg.y: %d\n", &theeg.y)
+		var G3 Point
+		G3.ec_point_add(&G, &G2)
+		fmt.Printf("G3.x: %d\n", G3.x)
+		fmt.Printf("G3.y: %d\n", G3.y)
+	*/
 
 	var Pmul Point
-	Pmul.ec_point_multiply(private_key, &G2)
+	Pmul.ec_point_multiply(private_key, &G)
 	fmt.Printf("\n\n%d\n", Pmul.x)
 	//fmt.Printf("%d\n", Pmul.y)
 	if big.NewInt(0).Cmp(Pmul.x) == 0 && big.NewInt(0).Cmp(Pmul.y) == 0 {
