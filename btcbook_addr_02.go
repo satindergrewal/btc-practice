@@ -55,32 +55,47 @@ func ec_G() Point {
 //     https://en.wikipedia.org/wiki/Modular_multiplicative_inverse#Using_Euler's_theorem
 //     https://crypto.stanford.edu/pbc/notes/elliptic/explicit.html
 func ec_point_add(P, Q *Point) Point {
-	fmt.Println(P)
-	fmt.Println(Q)
+	//fmt.Println(P)
+	//fmt.Println(Q)
 
 	p := *big.NewInt(0)
 	p = ec_p()
 	fmt.Println("value of p is: ", p)
 
-	/*if !P {
-		return Q
-	}
-	return P*/
+	slope := big.NewInt(0)
 
-	slope := big.NewInt(0).Mul(big.NewInt(0).Mul(big.NewInt(3), big.NewInt(0).Exp(&P.x, big.NewInt(2), nil)), big.NewInt(0).Exp(&P.y, big.NewInt(2), &p)) // 3Px^2 / 2Py
-	fmt.Println("\n\n", slope)
-
-	/*if P == Q {
-		slope := 3 * big.NewInt(0).Exp(&P.x, big.NewInt(2), nil) * big.NewInt(0).Exp(&P.y, big.NewInt(2), p) // 3Px^2 / 2Py
+	if P == Q {
+		// slope = 3*P.x**2 * pow(2*P.y, p-2, p)  # 3Px^2 / 2Py
+		pxpow2 := big.NewInt(0).Exp(&P.x, big.NewInt(2), nil)   // Px^2
+		threepxpow2 := big.NewInt(0).Mul(big.NewInt(3), pxpow2) //3Px^2
+		pymul2 := big.NewInt(0).Mul(big.NewInt(2), &P.y)        // 2*P.y
+		psub2 := big.NewInt(0).Sub(&p, big.NewInt(2))           // p-2
+		expo := big.NewInt(0).Exp(pymul2, psub2, &p)            // pow(2*P.y, p-2, p)
+		slope = big.NewInt(0).Mul(threepxpow2, expo)            // 3Px^2 / 2Py
+		fmt.Println("\n\nSLOPE 1: ", slope)
 	} else {
-		slope := (Q.y - P.y) * pow(Q.x-P.x, p-2, p) // (Qy - Py) / (Qx - Px)
-	}*/
-	return *P
+		// slope = (Q.y - P.y) * pow(Q.x - P.x, p-2, p)  # (Qy - Py) / (Qx - Px)
+		qysubpy := big.NewInt(0).Sub(&Q.y, &P.y)      // Qy - Py
+		qxsubpx := big.NewInt(0).Sub(&Q.x, &P.x)      // Qx - Px
+		psub2 := big.NewInt(0).Sub(&p, big.NewInt(2)) // p-2
+		expo := big.NewInt(0).Exp(qxsubpx, psub2, &p) // pow(Q.x - P.x, p-2, p)
+		slope = big.NewInt(0).Mul(qysubpy, expo)      // (Q.y - P.y) * pow(Q.x - P.x, p-2, p)
+		fmt.Println("\n\nSLOPE 2: ", slope)
+	}
 
-	/*R = Point()
-	R.x = (slope**2 - P.x - Q.x) % p  # (slope^2 - Px - Qx)
-	R.y = (slope*(P.x - R.x) - P.y) % p  # slope*(Px - Rx) - Py
-	return R*/
+	var R Point
+	rx := big.NewInt(0).Exp(slope, big.NewInt(2), nil) // slope^2
+	rx = big.NewInt(0).Sub(rx, &P.x)                   // slope^2 - Px
+	rx = big.NewInt(0).Sub(rx, &Q.x)                   // slope^2 - Px - Qx
+	R.x = *big.NewInt(0).Exp(rx, &p, &p)               // Mod value
+
+	ry := big.NewInt(0).Sub(&P.x, &R.x) // (Px - Rx)
+	ry = big.NewInt(0).Mul(slope, ry)   // slope*(Px - Rx)
+	ry = big.NewInt(0).Sub(ry, &P.y)    // slope*(Px - Rx) - Py
+	R.y = *big.NewInt(0).Mod(ry, &p)    // Mod value
+	//fmt.Println(&R)
+
+	return R
 }
 
 func main() {
@@ -107,10 +122,17 @@ func main() {
 
 	var G Point
 	G = ec_G()
-	//fmt.Println(&G.x)
+	fmt.Printf("Gx: %d\n", &G.x)
+	fmt.Printf("Gy: %d\n", &G.y)
 
 	var P Point
 	P = ec_point_add(&G, &G)
-	fmt.Println(P)
+	//fmt.Println("Value of P: ", P)
+	fmt.Printf("Px: %d\n", &P.x)
+	fmt.Printf("Py: %d\n", &P.y)
+
+	theeg := ec_point_add(&G, &P)
+	fmt.Printf("theeg.x: %d\n", &theeg.x)
+	fmt.Printf("theeg.y: %d\n", &theeg.y)
 
 }
