@@ -26,6 +26,28 @@ func ec_p() big.Int {
 	return *p
 }
 
+func ec_G() Point {
+	// Defining G
+	x := new(big.Int)
+	x, ok := x.SetString("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16)
+	if !ok {
+		log.Fatalf("big Int value did not set")
+	}
+	y := new(big.Int)
+	y, ok = y.SetString("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16)
+	if !ok {
+		log.Fatalf("big Int value did not set")
+	}
+	//fmt.Println(x)
+	//fmt.Println(y)
+
+	var G Point
+	G.x = *x
+	G.y = *y
+	//fmt.Printf("%d\n", G.x)
+	return G
+}
+
 // Elliptic curve point addition.  Unneeded side-cases are omitted for
 // simplicity.  See:
 //     https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Point_addition
@@ -38,15 +60,15 @@ func ec_point_add(P, Q *Point) Point {
 
 	p := *big.NewInt(0)
 	p = ec_p()
-	//fmt.Println("value of p is: ", p)
+	fmt.Println("value of p is: ", p)
 
 	/*if !P {
 		return Q
 	}
 	return P*/
 
-	threepx := big.NewInt(0).Mul(big.NewInt(3), big.NewInt(big.NewInt(0).Exp(&P.x, big.NewInt(2), nil)))
-	fmt.Println(threepx)
+	//threepx := big.NewInt(0).Mul(big.NewInt(3), big.NewInt(big.NewInt(0).Exp(&P.x, big.NewInt(2), nil)))
+	//fmt.Println(threepx)
 	//slope := big.NewInt(0).Mul(big.NewInt(3), big.NewInt(big.NewInt(0).Exp(&P.x, big.NewInt(2), nil))) * big.NewInt(0).Exp(&P.y, big.NewInt(2), p) // 3Px^2 / 2Py
 	//fmt.Println(slope)
 
@@ -85,26 +107,9 @@ func main() {
 	}
 	fmt.Printf("private_key: %d\n", private_key)
 
-	// Defining G
-	x := new(big.Int)
-	x, ok = x.SetString("79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798", 16)
-	if !ok {
-		log.Fatalf("big Int value did not set")
-		return
-	}
-	y := new(big.Int)
-	y, ok = y.SetString("483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8", 16)
-	if !ok {
-		log.Fatalf("big Int value did not set")
-		return
-	}
-	//fmt.Println(x)
-	//fmt.Println(y)
-
 	var G Point
-	G.x = *x
-	G.y = *y
-	//fmt.Printf("%d\n", G.x)
+	G = ec_G()
+	fmt.Println(&G.x)
 
 	var P Point
 	P = ec_point_add(&G, &G)
