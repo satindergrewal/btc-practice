@@ -58,9 +58,13 @@ func ec_point_add(P, Q *Point) Point {
 	//fmt.Println(P)
 	//fmt.Println(Q)
 
+	if big.NewInt(0).Cmp(&P.x) == 0 && big.NewInt(0).Cmp(&P.y) == 0 {
+		return *Q
+	}
+
 	p := *big.NewInt(0)
 	p = ec_p()
-	fmt.Println("value of p is: ", p)
+	//fmt.Println("value of p is: ", p)
 
 	slope := big.NewInt(0)
 
@@ -72,7 +76,7 @@ func ec_point_add(P, Q *Point) Point {
 		psub2 := big.NewInt(0).Sub(&p, big.NewInt(2))           // p-2
 		expo := big.NewInt(0).Exp(pymul2, psub2, &p)            // pow(2*P.y, p-2, p)
 		slope = big.NewInt(0).Mul(threepxpow2, expo)            // 3Px^2 / 2Py
-		fmt.Println("\n\nSLOPE 1: ", slope)
+		//fmt.Println("\n\nSLOPE 1: ", slope)
 	} else {
 		// slope = (Q.y - P.y) * pow(Q.x - P.x, p-2, p)  # (Qy - Py) / (Qx - Px)
 		qysubpy := big.NewInt(0).Sub(&Q.y, &P.y)      // Qy - Py
@@ -80,7 +84,7 @@ func ec_point_add(P, Q *Point) Point {
 		psub2 := big.NewInt(0).Sub(&p, big.NewInt(2)) // p-2
 		expo := big.NewInt(0).Exp(qxsubpx, psub2, &p) // pow(Q.x - P.x, p-2, p)
 		slope = big.NewInt(0).Mul(qysubpy, expo)      // (Q.y - P.y) * pow(Q.x - P.x, p-2, p)
-		fmt.Println("\n\nSLOPE 2: ", slope)
+		//fmt.Println("\n\nSLOPE 2: ", slope)
 	}
 
 	var R Point
@@ -96,6 +100,27 @@ func ec_point_add(P, Q *Point) Point {
 	//fmt.Println(&R)
 
 	return R
+}
+
+// Elliptic curve point multiplication.  This is an implimentation of the
+// Double-and-add algorithm with increasing index described here:
+//     https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Double-and-add
+func ec_point_multiply(d *big.Int, P *Point) Point {
+	//N := &P
+	var Q Point
+	Q.x = *big.NewInt(0)
+	Q.y = *big.NewInt(0)
+
+	fmt.Println("Value of D: ", &d)
+
+	//fmt.Println(d & big.NewInt(1))
+
+	/*while d:
+	  if d & 1:
+	      Q = ec_point_add(Q, N)
+	  N = ec_point_add(N, N)
+	  d >>= 1*/
+	return Q
 }
 
 func main() {
@@ -125,14 +150,22 @@ func main() {
 	fmt.Printf("Gx: %d\n", &G.x)
 	fmt.Printf("Gy: %d\n", &G.y)
 
-	var P Point
-	P = ec_point_add(&G, &G)
-	//fmt.Println("Value of P: ", P)
-	fmt.Printf("Px: %d\n", &P.x)
-	fmt.Printf("Py: %d\n", &P.y)
+	var G2 Point
+	G2 = ec_point_add(&G, &G)
+	//fmt.Println("Value of G2: ", G2)
+	fmt.Printf("G2x: %d\n", &G2.x)
+	fmt.Printf("G2y: %d\n", &G2.y)
 
-	theeg := ec_point_add(&G, &P)
-	fmt.Printf("theeg.x: %d\n", &theeg.x)
-	fmt.Printf("theeg.y: %d\n", &theeg.y)
+	//theeg := ec_point_add(&G, &P)
+	//fmt.Printf("theeg.x: %d\n", &theeg.x)
+	//fmt.Printf("theeg.y: %d\n", &theeg.y)
 
+	var Pmul Point
+	Pmul = ec_point_multiply(private_key, &G2)
+	fmt.Printf("\n\n%t\n", &Pmul.x)
+	if big.NewInt(0).Cmp(&Pmul.x) == 0 && big.NewInt(0).Cmp(&Pmul.y) == 0 {
+		fmt.Printf("Pmul.x is not zero: %d\n", &Pmul.x)
+	} else {
+		fmt.Printf("Pmul.x is zero: %d\n", &Pmul.x)
+	}
 }
