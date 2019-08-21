@@ -162,9 +162,7 @@ func main() {
 	 *     https://en.bitcoin.it/wiki/Secp256k1
 	 *     https://www.secg.org/sec2-v2.pdf - Section 2.4.1.
 	 */
-	p.SetInt64(1)
-	p.Lsh(p, 256)
-	p.Sub(p, big.NewInt(1<<32+977))
+	p.SetBit(p, 256, 1).Sub(p, big.NewInt(1<<32+977))
 	fmt.Println("\tp:")
 	fmt.Println(p)
 
