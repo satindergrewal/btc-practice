@@ -84,8 +84,7 @@ func (R Point) ECPointAdd(P, Q Point) Point {
  *     https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Double-and-add
  */
 func (Q Point) ECPointMul(d *big.Int, P Point) Point {
-	N := NewPoint()
-	N.Set(P)
+	N := NewPoint().Set(P)
 	Q.Set(identity)
 	for i := 0; i < d.BitLen(); i++ {
 		if d.Bit(i) == 1 {
@@ -115,18 +114,18 @@ func (R Point) Serialize() []byte {
  * RIPEMD-160 hash.
  */
 func r160(data []byte) []byte {
-	d := ripemd160.New()
-	d.Write(data)
-	return d.Sum(nil)
+	h := ripemd160.New()
+	h.Write(data)
+	return h.Sum(nil)
 }
 
 /*
  * SHA-256 hash.
  */
 func s256(data []byte) []byte {
-	d := sha256.New()
-	d.Write(data)
-	return d.Sum(nil)
+	h := sha256.New()
+	h.Write(data)
+	return h.Sum(nil)
 }
 
 /*
@@ -134,24 +133,24 @@ func s256(data []byte) []byte {
  *     https://en.bitcoin.it/wiki/Base58Check_encoding#Base58_symbol_chart
  */
 func base58(data []byte) string {
-	zero := new(big.Int)
+	zero := big.NewInt(0)
 	base := big.NewInt(58)
 	symbol := "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
-	var result []byte
+	var s []byte
 	x := new(big.Int).SetBytes(data)
 	r := new(big.Int)
 	for x.Cmp(zero) != 0 {
 		x.DivMod(x, base, r)
-		result = append(result, symbol[r.Int64()])
+		s = append(s, symbol[r.Int64()])
 	}
 	for i := 0; data[i] == 0; i++ {
-		result = append(result, symbol[0])
+		s = append(s, symbol[0])
 	}
-	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
-		result[i], result[j] = result[j], result[i]
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
 	}
-	return string(result)
+	return string(s)
 }
 
 func main() {
@@ -162,7 +161,8 @@ func main() {
 	 *     https://en.bitcoin.it/wiki/Secp256k1
 	 *     https://www.secg.org/sec2-v2.pdf - Section 2.4.1.
 	 */
-	p.SetBit(p, 256, 1).Sub(p, big.NewInt(1<<32+977))
+	p.SetBit(p, 256, 1)
+	p.Sub(p, big.NewInt(1<<32+977))
 	fmt.Println("\tp:")
 	fmt.Println(p)
 
