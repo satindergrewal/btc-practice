@@ -27,7 +27,7 @@ func (P Point) String() string {
 	return fmt.Sprintf("Point(%d, %d)", P.x, P.y)
 }
 
-func (P Point) Cmp(Q Point) bool {
+func (P Point) Equals(Q Point) bool {
 	return P.x.Cmp(Q.x) == 0 && P.y.Cmp(Q.y) == 0
 }
 
@@ -49,17 +49,19 @@ var identity = NewPoint()
  *     https://crypto.stanford.edu/pbc/notes/elliptic/explicit.html
  */
 func (R Point) ECPointAdd(P, Q Point) Point {
-	if P.Cmp(identity) {
+	if P.Equals(identity) {
 		return R.Set(Q)
 	}
-	s := new(big.Int)
-	if P.Cmp(Q) {
+	s := new(big.Int) // The slope
+	if P.Equals(Q) {
+		// s = 3Px^2 / 2Py   mod p
 		s.Mul(big.NewInt(2), P.y)
 		s.ModInverse(s, p)
 		s.Mul(s, big.NewInt(3))
 		s.Mul(s, P.x)
 		s.Mul(s, P.x)
 	} else {
+		// s = (Qy - Py) / (Qx - Px)   mod p
 		s.Sub(Q.x, P.x)
 		s.Mod(s, p)
 		s.ModInverse(s, p)
@@ -67,14 +69,19 @@ func (R Point) ECPointAdd(P, Q Point) Point {
 	}
 	x := new(big.Int)
 	y := new(big.Int)
+
+	// x = (s^2 - Px - Qx)   mod p
 	x.Mul(s, s)
 	x.Sub(x, P.x)
 	x.Sub(x, Q.x)
 	x.Mod(x, p)
+
+	// y = s*(Px - x) - Py   mod p
 	y.Sub(P.x, x)
 	y.Mul(y, s)
 	y.Sub(y, P.y)
 	y.Mod(y, p)
+
 	return R.Set(Point{x, y})
 }
 
@@ -103,11 +110,10 @@ func (Q Point) ECPointMul(d *big.Int, P Point) Point {
  *     https://www.secg.org/sec1-v2.pdf - Section 2.3.3.
  */
 func (R Point) Serialize() []byte {
-	var s [33]byte
-	s[0] = byte(2 + R.y.Bit(0))
-	x := R.x.Bytes()
-	copy(s[33-len(x):], x)
-	return s[:]
+	b := R.x.Bytes()
+	a := make([]byte, 33-len(b))
+	a[0] = byte(2 + R.y.Bit(0))
+	return append(a, b...)
 }
 
 /*
@@ -135,18 +141,20 @@ func s256(data []byte) []byte {
 func base58(data []byte) string {
 	zero := big.NewInt(0)
 	base := big.NewInt(58)
-	symbol := "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZ" +
+		"abcdefghijkmnopqrstuvwxyz"
 
 	var s []byte
 	x := new(big.Int).SetBytes(data)
 	r := new(big.Int)
 	for x.Cmp(zero) != 0 {
 		x.DivMod(x, base, r)
-		s = append(s, symbol[r.Int64()])
+		s = append(s, alphabet[r.Int64()])
 	}
 	for i := 0; data[i] == 0; i++ {
-		s = append(s, symbol[0])
+		s = append(s, alphabet[0])
 	}
+	// Reverse the array.
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]
 	}
