@@ -47,7 +47,9 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 	//fmt.Println("Qy: ", Q.y)
 
 	if big.NewInt(0).Cmp(P.x) == 0 && big.NewInt(0).Cmp(P.y) == 0 {
-		return Q
+		R.x.Set(Q.x)
+		R.y.Set(Q.y)
+		return R
 	}
 
 	p := big.NewInt(0)
@@ -56,7 +58,7 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 
 	slope := big.NewInt(0)
 
-	if P == Q {
+	if P.x.Cmp(Q.x) == 0 && P.y.Cmp(Q.y) == 0 {
 		// slope = 3*P.x**2 * pow(2*P.y, p-2, p)  # 3Px^2 / 2Py
 		pxpow2 := big.NewInt(0).Exp(P.x, big.NewInt(2), nil)    // Px^2
 		threepxpow2 := big.NewInt(0).Mul(big.NewInt(3), pxpow2) //3Px^2
@@ -64,27 +66,40 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 		psub2 := big.NewInt(0).Sub(p, big.NewInt(2))            // p-2
 		expo := big.NewInt(0).Exp(pymul2, psub2, p)             // pow(2*P.y, p-2, p)
 		slope = big.NewInt(0).Mul(threepxpow2, expo)            // 3Px^2 / 2Py
-		//fmt.Println("\n\nSLOPE 1: ", slope)
+		fmt.Println("\n\nSLOPE 1: ", slope)
 	} else {
 		// slope = (Q.y - P.y) * pow(Q.x - P.x, p-2, p)  # (Qy - Py) / (Qx - Px)
-		qysubpy := big.NewInt(0).Sub(Q.y, P.y)       // Qy - Py
-		qxsubpx := big.NewInt(0).Sub(Q.x, P.x)       // Qx - Px
+		fmt.Printf("Qy %d\nPy %d\n", Q.y, P.y)
+		fmt.Printf("Qx %d\nPx %d\n", Q.x, P.x)
+		qysubpy := big.NewInt(0).Sub(Q.y, P.y) // Qy - Py
+		fmt.Println("qysubpy", qysubpy)
+		qxsubpx := big.NewInt(0).Sub(Q.x, P.x) // Qx - Px
+		fmt.Println("qxsubpx", qxsubpx)
+		//qxsubpxmodp := big.NewInt(0).Mod(qxsubpx, p)     // (Qx - Px)%p
 		psub2 := big.NewInt(0).Sub(p, big.NewInt(2)) // p-2
+		fmt.Println("psub2", psub2)
 		expo := big.NewInt(0).Exp(qxsubpx, psub2, p) // pow(Q.x - P.x, p-2, p)
-		slope = big.NewInt(0).Mul(qysubpy, expo)     // (Q.y - P.y) * pow(Q.x - P.x, p-2, p)
-		//fmt.Println("\n\nSLOPE 2: ", slope)
+		fmt.Println("expo", expo)
+		slope = big.NewInt(0).Mul(qysubpy, expo) // (Q.y - P.y) * pow(Q.x - P.x, p-2, p)
+		fmt.Println("\n\nSLOPE 2: ", slope)
 	}
 
 	rx := big.NewInt(0).Exp(slope, big.NewInt(2), nil) // slope^2
 	rx = big.NewInt(0).Sub(rx, P.x)                    // slope^2 - Px
 	rx = big.NewInt(0).Sub(rx, Q.x)                    // slope^2 - Px - Qx
-	R.x = big.NewInt(0).Exp(rx, p, p)                  // Mod value
+	rx.Exp(rx, p, p)                                   // Mod value
 
-	ry := big.NewInt(0).Sub(P.x, R.x) // (Px - Rx)
+	fmt.Println("P.x", P.x)
+	fmt.Println("rx", rx)
+	ry := big.NewInt(0).Sub(P.x, rx) // (Px - Rx)
+	fmt.Println("ry", ry)
 	ry = big.NewInt(0).Mul(slope, ry) // slope*(Px - Rx)
 	ry = big.NewInt(0).Sub(ry, P.y)   // slope*(Px - Rx) - Py
-	R.y = big.NewInt(0).Mod(ry, p)    // Mod value
+	ry.Mod(ry, p)                     // Mod value
 	//fmt.Println(&R)
+
+	R.x.Set(rx)
+	R.y.Set(ry)
 	return R
 }
 
@@ -92,7 +107,9 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 // Double-and-add algorithm with increasing index described here:
 //     https://en.wikipedia.org/wiki/Elliptic_curve_point_multiplication#Double-and-add
 func (Q *Point) ec_point_multiply(d *big.Int, P *Point) Point {
-	N := P
+	N := &Point{new(big.Int), new(big.Int)}
+	N.x.Set(P.x)
+	N.y.Set(P.y)
 
 	//var Q Point
 	Q.x = big.NewInt(0)
@@ -103,15 +120,14 @@ func (Q *Point) ec_point_multiply(d *big.Int, P *Point) Point {
 	//fmt.Println("BitLen of d: ", d.BitLen())
 
 	for i := 0; i <= d.BitLen(); i++ {
-		//fmt.Println(i, d.Bit(i))
+		fmt.Println(i, d.Bit(i))
 		if d.Bit(i) == 1 {
 			Q.ec_point_add(Q, N)
-			//fmt.Println(i, d.Bit(i), Q.x, Q.y)
-		} else {
-			N.ec_point_add(N, N)
-			//fmt.Println("N is: ", N.x)
+			fmt.Println(i, d.Bit(i), Q.x, Q.y)
 		}
-		d.Rsh(d, 1)
+		N.ec_point_add(N, N)
+		fmt.Println("N is: ", N.x, N.y)
+		//d.Rsh(d, 1)
 	}
 
 	//	while d:

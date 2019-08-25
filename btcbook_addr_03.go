@@ -187,9 +187,12 @@ func main() {
 	 * fffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140, one
 	 * less than the order of the base point (or "generator point")
 	 * G.  See:
-	 *     https://en.bitcoin.it/wiki/Private_key//Range_of_valid_ECDSA_private_keys
+	 *     https://en.bitcoin.it/wiki/Private_key#Range_of_valid_ECDSA_private_keys
 	 */
 	var privateKey = new(big.Int)
+
+	// dice: write use Base 6
+	// with:
 	privateKey.SetString("038109007313a5807b2eccc082c8c3fbb988a973"+
 		"cacf1a7df9ce725c31b14776", 16)
 	fmt.Println("\tprivateKey:")
