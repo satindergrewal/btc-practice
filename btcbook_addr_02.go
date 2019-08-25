@@ -4,9 +4,12 @@ package main
 // converting python code example from Gareth's gareth_file04.py
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"log"
 	"math/big"
+
+	"golang.org/x/crypto/ripemd160"
 )
 
 type Point struct {
@@ -177,6 +180,24 @@ func (R Point) Serialize() []byte {
 	}
 }
 
+/*
+ * RIPEMD-160 hash.
+ */
+func r160(data []byte) []byte {
+	h := ripemd160.New()
+	h.Write(data)
+	return h.Sum(nil)
+}
+
+/*
+ * SHA-256 hash.
+ */
+func s256(data []byte) []byte {
+	h := sha256.New()
+	h.Write(data)
+	return h.Sum(nil)
+}
+
 func main() {
 	// Please note that the following code is a demo.  Edge cases and error
 	// checking are intentionally omitted where they might otherwise distract
@@ -208,19 +229,6 @@ func main() {
 	G = ec_G()
 	fmt.Printf("Gx: %d\n", G.x)
 	fmt.Printf("Gy: %d\n", G.y)
-
-	/*
-		var G2 Point
-		G2.ec_point_add(&G, &G)
-		//fmt.Println("Value of G2: ", G2)
-		fmt.Printf("G2x: %d\n", G2.x)
-		fmt.Printf("G2y: %d\n", G2.y)
-
-		var G3 Point
-		G3.ec_point_add(&G, &G2)
-		fmt.Printf("G3.x: %d\n", G3.x)
-		fmt.Printf("G3.y: %d\n", G3.y)
-	*/
 
 	var publicKey Point
 	publicKey.ec_point_multiply(private_key, &G)
