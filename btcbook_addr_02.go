@@ -66,22 +66,22 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 		psub2 := big.NewInt(0).Sub(p, big.NewInt(2))            // p-2
 		expo := big.NewInt(0).Exp(pymul2, psub2, p)             // pow(2*P.y, p-2, p)
 		slope = big.NewInt(0).Mul(threepxpow2, expo)            // 3Px^2 / 2Py
-		fmt.Println("\n\nSLOPE 1: ", slope)
+		//fmt.Println("\n\nSLOPE 1: ", slope)
 	} else {
 		// slope = (Q.y - P.y) * pow(Q.x - P.x, p-2, p)  # (Qy - Py) / (Qx - Px)
-		fmt.Printf("Qy %d\nPy %d\n", Q.y, P.y)
-		fmt.Printf("Qx %d\nPx %d\n", Q.x, P.x)
+		//fmt.Printf("Qy %d\nPy %d\n", Q.y, P.y)
+		//fmt.Printf("Qx %d\nPx %d\n", Q.x, P.x)
 		qysubpy := big.NewInt(0).Sub(Q.y, P.y) // Qy - Py
-		fmt.Println("qysubpy", qysubpy)
+		//fmt.Println("qysubpy", qysubpy)
 		qxsubpx := big.NewInt(0).Sub(Q.x, P.x) // Qx - Px
-		fmt.Println("qxsubpx", qxsubpx)
+		//fmt.Println("qxsubpx", qxsubpx)
 		//qxsubpxmodp := big.NewInt(0).Mod(qxsubpx, p)     // (Qx - Px)%p
 		psub2 := big.NewInt(0).Sub(p, big.NewInt(2)) // p-2
-		fmt.Println("psub2", psub2)
+		//fmt.Println("psub2", psub2)
 		expo := big.NewInt(0).Exp(qxsubpx, psub2, p) // pow(Q.x - P.x, p-2, p)
-		fmt.Println("expo", expo)
+		//fmt.Println("expo", expo)
 		slope = big.NewInt(0).Mul(qysubpy, expo) // (Q.y - P.y) * pow(Q.x - P.x, p-2, p)
-		fmt.Println("\n\nSLOPE 2: ", slope)
+		//fmt.Println("\n\nSLOPE 2: ", slope)
 	}
 
 	rx := big.NewInt(0).Exp(slope, big.NewInt(2), nil) // slope^2
@@ -89,10 +89,10 @@ func (R *Point) ec_point_add(P, Q *Point) *Point {
 	rx = big.NewInt(0).Sub(rx, Q.x)                    // slope^2 - Px - Qx
 	rx.Exp(rx, p, p)                                   // Mod value
 
-	fmt.Println("P.x", P.x)
-	fmt.Println("rx", rx)
+	//fmt.Println("P.x", P.x)
+	//fmt.Println("rx", rx)
 	ry := big.NewInt(0).Sub(P.x, rx) // (Px - Rx)
-	fmt.Println("ry", ry)
+	//fmt.Println("ry", ry)
 	ry = big.NewInt(0).Mul(slope, ry) // slope*(Px - Rx)
 	ry = big.NewInt(0).Sub(ry, P.y)   // slope*(Px - Rx) - Py
 	ry.Mod(ry, p)                     // Mod value
@@ -120,23 +120,61 @@ func (Q *Point) ec_point_multiply(d *big.Int, P *Point) Point {
 	//fmt.Println("BitLen of d: ", d.BitLen())
 
 	for i := 0; i <= d.BitLen(); i++ {
-		fmt.Println(i, d.Bit(i))
+		//fmt.Println(i, d.Bit(i))
 		if d.Bit(i) == 1 {
 			Q.ec_point_add(Q, N)
-			fmt.Println(i, d.Bit(i), Q.x, Q.y)
+			//fmt.Println(i, d.Bit(i), Q.x, Q.y)
 		}
 		N.ec_point_add(N, N)
-		fmt.Println("N is: ", N.x, N.y)
-		//d.Rsh(d, 1)
+		//fmt.Println("N is: ", N.x, N.y)
 	}
 
-	//	while d:
-	//	  if d & 1:
-	//	      Q = ec_point_add(Q, N)
-	//	  N = ec_point_add(N, N)
-	//	  d >>= 1
-	fmt.Println("ec multiply return: ", Q.x, Q.y)
+	//fmt.Println("ec multiply return: ", Q.x, Q.y)
 	return *Q
+}
+
+// Following the exmple of Figure 4-7 of Mastering Bitcoin
+func (R Point) Serialize() []byte {
+	b := R.x.Bytes()
+	fmt.Println("Check if Y is Een or Odd: ")
+	fmt.Println("R.y.Mod(big.NewInt(2))", R.y.Mod(R.y, big.NewInt(2)))
+
+	// If the length of Public Key x bytes is lesser than 32 bytes, we need to add
+	// the required remaining bytes to the Public Key x.
+	// Check the length of byte slice for R.x
+	if length := 0; len(b) < 32 { // temp variable to store length value for public key x
+		fmt.Println("Public Key x Byte length", len(b))
+		length = 32 - len(b)
+		fmt.Printf("Byte length of public key x is short by %d\n", length)
+		addbytes := make([]byte, length)
+		fmt.Println("addbytes", addbytes)
+		b = append(addbytes, b...)
+		fmt.Println("b byte length after addbytes", len(b))
+	}
+
+	/*
+			// Even odd number checking
+			if(n%2==0){
+		        fmt.Println(n,"is Even number")
+		    }else{
+		        fmt.Println(n,"is Odd number")
+		    }
+	*/
+	if R.y.Mod(R.y, big.NewInt(2)).Cmp(big.NewInt(0)) == 0 {
+		fmt.Println(R.y, "is Even number")
+		fmt.Println("R.x", R.x)
+		fmt.Println("R.x Bytes", b)
+		fmt.Println("R.x Bytes length", len(b))
+		fmt.Println("byte 02", []byte{02})
+		a := append([]byte{02}, b...)
+		fmt.Println("a", a)
+		return a
+	} else {
+		fmt.Println(R.y, "is Odd number")
+		a := append([]byte{03}, b...)
+		fmt.Println("a", a)
+		return a
+	}
 }
 
 func main() {
@@ -154,6 +192,11 @@ func main() {
 	// See:
 	//     https://en.bitcoin.it/wiki/Private_key//Range_of_valid_ECDSA_private_keys
 	private_key := new(big.Int)
+
+	// Mastering Bitcoin example privkey, which has odd public key x value
+	//private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b1477a", 16)
+
+	// Mastering Bitcoin example privkey, which has even public key x value
 	private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b14776", 16)
 	if !ok {
 		log.Fatalf("big Int value did not set")
@@ -164,7 +207,7 @@ func main() {
 	var G Point
 	G = ec_G()
 	fmt.Printf("Gx: %d\n", G.x)
-	fmt.Printf("Gy: %d\n\n", G.y)
+	fmt.Printf("Gy: %d\n", G.y)
 
 	/*
 		var G2 Point
@@ -179,14 +222,12 @@ func main() {
 		fmt.Printf("G3.y: %d\n", G3.y)
 	*/
 
-	var Pmul Point
-	Pmul.ec_point_multiply(private_key, &G)
-	fmt.Printf("\n\n%d\n", Pmul.x)
-	//fmt.Printf("%d\n", Pmul.y)
-	if big.NewInt(0).Cmp(Pmul.x) == 0 && big.NewInt(0).Cmp(Pmul.y) == 0 {
-		fmt.Printf("Pmul.x is not zero: %d\n", Pmul.x)
-	} else {
-		fmt.Printf("Pmul.x is zero: %d\n", Pmul.x)
-	}
+	var publicKey Point
+	publicKey.ec_point_multiply(private_key, &G)
+	fmt.Printf("\npublicKey.x %d\n", publicKey.x)
+	fmt.Printf("publicKey.y %d\n", publicKey.y)
+
+	serializedPublicKey := publicKey.Serialize()
+	fmt.Printf("serializedPublicKey: %x\n", serializedPublicKey)
 
 }
