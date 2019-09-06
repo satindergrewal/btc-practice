@@ -217,7 +217,7 @@ func base58(data []byte) string {
 	for x.Cmp(big.NewInt(0)) != 0 {
 		x.DivMod(x, base, remainder)
 		//fmt.Println("X", x, "\nRemainder", remainder)
-		fmt.Printf("alphabet[%d]: %s\n", remainder.Int64(), string(alphabet[remainder.Int64()]))
+		//fmt.Printf("alphabet[%d]: %s\n", remainder.Int64(), string(alphabet[remainder.Int64()]))
 		output_string = append(output_string, alphabet[remainder.Int64()]) // Appending the value stored at position alphabet[remainder] to output_string
 	}
 	fmt.Println("output_string value after first loop: ", string(output_string))
@@ -274,4 +274,27 @@ func main() {
 	serializedPublicKey := publicKey.Serialize()
 	fmt.Printf("serializedPublicKey: %x\n", serializedPublicKey)
 
+	publicKeyHash := r160(s256(serializedPublicKey))
+	fmt.Printf("publicKeyHash: %x\n", publicKeyHash)
+
+	/*
+	 * Calculate the checksum needed for Bitcoin's Base58Check
+	 * format.  See:
+	 *     Mastering Bitcoin, page 58
+	 *     https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses#How_to_create_Bitcoin_Address - Steps 5-7.
+	 */
+	version := []byte{0}
+	fmt.Println("Bitcoin version byte: ", version)
+	versionPlusHash := append(version, publicKeyHash...)
+	fmt.Println("bitcoin version + pubkey hash: ", versionPlusHash)
+	checksum := s256(s256(versionPlusHash))[:4]
+	fmt.Printf("checksum: %x\n", checksum)
+
+	/*
+	 * A Bitcoin address is just the public key hash encoded in
+	 * Bitcoin's Base58Check format.  See:
+	 *     Mastering Bitcoin, page 66.
+	 */
+	address := base58(append(versionPlusHash, checksum...))
+	fmt.Println("address:", address)
 }
