@@ -6,7 +6,6 @@ package main
 import (
 	"crypto/sha256"
 	"fmt"
-	"log"
 	"math/big"
 
 	"golang.org/x/crypto/ripemd160"
@@ -139,7 +138,7 @@ func (Q *Point) ec_point_multiply(d *big.Int, P *Point) Point {
 // Following the exmple of Figure 4-7 of Mastering Bitcoin
 func (R Point) Serialize() []byte {
 	b := R.x.Bytes()
-	fmt.Println("Check if Y is Een or Odd: ")
+	fmt.Println("Check if Y is Even or Odd: ")
 	fmt.Println("R.y.Mod(big.NewInt(2))", R.y.Mod(R.y, big.NewInt(2)))
 
 	// If the length of Public Key x bytes is lesser than 32 bytes, we need to add
@@ -207,8 +206,8 @@ func base58(data []byte) string {
 	remainder := new(big.Int)                                                     // to store remainder of the data bytes
 	const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz" // base 58 character set
 
-	fmt.Println("Length of base58 characters: ", len(alphabet))
-	fmt.Println("Recieved data bytes: ", data)
+	//fmt.Println("Length of base58 characters: ", len(alphabet))
+	fmt.Printf("Recieved data bytes: %x\n", data)
 
 	x := new(big.Int).SetBytes(data) // convert bytes to big integer
 	fmt.Println("Bytes to big integer: ", x)
@@ -253,12 +252,18 @@ func main() {
 	// Mastering Bitcoin example privkey, which has odd public key x value
 	//private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b1477a", 16)
 
+	passStr := "satinder"                        // Password string or Pass phrase
+	passHash := s256(s256([]byte(passStr)))      // convert passphrase to bytes/uint8 and double hash it with SHA256
+	private_key = private_key.SetBytes(passHash) // Setting passrase hash with SetBytes
+	fmt.Println("Password/Passphrase: ", passStr)
+	fmt.Printf("password hash: %d\n", passHash)
+
 	// Mastering Bitcoin example privkey, which has even public key x value
-	private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b14776", 16)
-	if !ok {
+	//private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b14776", 16)
+	/*if !ok {
 		log.Fatalf("big Int value did not set")
 		//return errors.New("big Int value did not set")
-	}
+	}*/
 	fmt.Printf("private_key: %d\n", private_key)
 
 	var G Point
@@ -284,9 +289,9 @@ func main() {
 	 *     https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses#How_to_create_Bitcoin_Address - Steps 5-7.
 	 */
 	version := []byte{0}
-	fmt.Println("Bitcoin version byte: ", version)
+	fmt.Printf("Bitcoin version byte: %x\n", version)
 	versionPlusHash := append(version, publicKeyHash...)
-	fmt.Println("bitcoin version + pubkey hash: ", versionPlusHash)
+	fmt.Printf("bitcoin version + pubkey hash: %d\n", versionPlusHash)
 	checksum := s256(s256(versionPlusHash))[:4]
 	fmt.Printf("checksum: %x\n", checksum)
 
@@ -297,4 +302,5 @@ func main() {
 	 */
 	address := base58(append(versionPlusHash, checksum...))
 	fmt.Println("address:", address)
+
 }
