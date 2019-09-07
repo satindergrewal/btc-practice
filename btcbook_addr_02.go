@@ -6,6 +6,7 @@ package main
 import (
 	"crypto/sha256"
 	"fmt"
+	"log"
 	"math/big"
 
 	"golang.org/x/crypto/ripemd160"
@@ -252,18 +253,18 @@ func main() {
 	// Mastering Bitcoin example privkey, which has odd public key x value
 	//private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b1477a", 16)
 
-	passStr := "satinder"                        // Password string or Pass phrase
+	/*passStr := "satinder"                        // Password string or Pass phrase
 	passHash := s256(s256([]byte(passStr)))      // convert passphrase to bytes/uint8 and double hash it with SHA256
 	private_key = private_key.SetBytes(passHash) // Setting passrase hash with SetBytes
 	fmt.Println("Password/Passphrase: ", passStr)
-	fmt.Printf("password hash: %x\n", passHash)
+	fmt.Printf("password hash: %x\n", passHash)*/
 
 	// Mastering Bitcoin example privkey, which has even public key x value
-	//private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b14776", 16)
-	/*if !ok {
+	private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b14776", 16)
+	if !ok {
 		log.Fatalf("big Int value did not set")
 		//return errors.New("big Int value did not set")
-	}*/
+	}
 	fmt.Printf("private_key: %d\n", private_key)
 
 	var G Point
@@ -306,9 +307,9 @@ func main() {
 	/*
 	 *	https://www.mobilefish.com/services/cryptocurrency/cryptocurrency.html#refPrivateKeyHex
 	 */
-	privKeyVersion := []byte{0x80}                            // version byte to add as prefix for private key
-	privKeyPlusVersion := append(privKeyVersion, passHash...) // privkey version + privkey hash
-	privKeyChecksum := s256(s256(privKeyPlusVersion))[:4]     // first 4 bytes of double hashed (privkey version + privkey hash)
+	privKeyVersion := []byte{0x80}                                       // version byte to add as prefix for private key
+	privKeyPlusVersion := append(privKeyVersion, private_key.Bytes()...) // privkey version + privkey hash
+	privKeyChecksum := s256(s256(privKeyPlusVersion))[:4]                // first 4 bytes of double hashed (privkey version + privkey hash)
 	fmt.Printf("Bitcoin Private Key version byte: %d\n", privKeyVersion)
 	fmt.Printf("bitcoin version + private key hash: %x   byte length: %d\n", privKeyPlusVersion, len(privKeyPlusVersion))
 	fmt.Printf("privKeyChecksum: %x\n", privKeyChecksum)
