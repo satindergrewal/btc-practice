@@ -207,10 +207,10 @@ func base58(data []byte) string {
 	const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz" // base 58 character set
 
 	//fmt.Println("Length of base58 characters: ", len(alphabet))
-	fmt.Printf("Recieved data bytes: %x\n", data)
+	//fmt.Printf("Recieved data bytes: %x\n", data)
 
 	x := new(big.Int).SetBytes(data) // convert bytes to big integer
-	fmt.Println("Bytes to big integer: ", x)
+	//fmt.Println("Bytes to big integer: ", x)
 	var output_string []byte // To store base58 coverted value to a temp variable
 
 	for x.Cmp(big.NewInt(0)) != 0 {
@@ -219,12 +219,12 @@ func base58(data []byte) string {
 		//fmt.Printf("alphabet[%d]: %s\n", remainder.Int64(), string(alphabet[remainder.Int64()]))
 		output_string = append(output_string, alphabet[remainder.Int64()]) // Appending the value stored at position alphabet[remainder] to output_string
 	}
-	fmt.Println("output_string value after first loop: ", string(output_string))
+	//fmt.Println("output_string value after first loop: ", string(output_string))
 
 	for i := 0; data[i] == 0; i++ {
 		output_string = append(output_string, alphabet[0])
 	}
-	fmt.Println("output_string value after second loop: ", string(output_string))
+	//fmt.Println("output_string value after second loop: ", string(output_string))
 
 	// Reverse the array.
 	for i, j := 0, len(output_string)-1; i < j; i, j = i+1, j-1 {
@@ -256,7 +256,7 @@ func main() {
 	passHash := s256(s256([]byte(passStr)))      // convert passphrase to bytes/uint8 and double hash it with SHA256
 	private_key = private_key.SetBytes(passHash) // Setting passrase hash with SetBytes
 	fmt.Println("Password/Passphrase: ", passStr)
-	fmt.Printf("password hash: %d\n", passHash)
+	fmt.Printf("password hash: %x\n", passHash)
 
 	// Mastering Bitcoin example privkey, which has even public key x value
 	//private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b14776", 16)
@@ -288,8 +288,8 @@ func main() {
 	 *     Mastering Bitcoin, page 58
 	 *     https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses#How_to_create_Bitcoin_Address - Steps 5-7.
 	 */
-	version := []byte{0}
-	fmt.Printf("Bitcoin version byte: %x\n", version)
+	version := []byte{0x0}
+	fmt.Printf("Bitcoin version byte: %d\n", version)
 	versionPlusHash := append(version, publicKeyHash...)
 	fmt.Printf("bitcoin version + pubkey hash: %d\n", versionPlusHash)
 	checksum := s256(s256(versionPlusHash))[:4]
@@ -301,6 +301,38 @@ func main() {
 	 *     Mastering Bitcoin, page 66.
 	 */
 	address := base58(append(versionPlusHash, checksum...))
-	fmt.Println("address:", address)
+	fmt.Println("address:", address, "\n")
 
+	/*
+	 *	https://www.mobilefish.com/services/cryptocurrency/cryptocurrency.html#refPrivateKeyHex
+	 */
+	privKeyVersion := []byte{0x80}                            // version byte to add as prefix for private key
+	privKeyPlusVersion := append(privKeyVersion, passHash...) // privkey version + privkey hash
+	privKeyChecksum := s256(s256(privKeyPlusVersion))[:4]     // first 4 bytes of double hashed (privkey version + privkey hash)
+	fmt.Printf("Bitcoin Private Key version byte: %d\n", privKeyVersion)
+	fmt.Printf("bitcoin version + private key hash: %x   byte length: %d\n", privKeyPlusVersion, len(privKeyPlusVersion))
+	fmt.Printf("privKeyChecksum: %x\n", privKeyChecksum)
+
+	privKeyAddChecksumUncomp := append(privKeyPlusVersion, privKeyChecksum...) // privkey version + privkey hash + extra byte + last
+	fmt.Printf("Privkey version + privkey hash + Uncompressed Checksum: %x   byte length: %d\n", privKeyAddChecksumUncomp, len(privKeyAddChecksumUncomp))
+
+	wifUncompressed := base58(privKeyAddChecksumUncomp)
+	fmt.Println("WIF (Uncompressed):", wifUncompressed, "\n")
+
+	/*
+	 * WIF Key (Compressed) need extra byte added to the end
+	 * along with version + privkey hash + 01
+	 */
+	byteone := []byte{0x01}                                  // Extra byte 01 to add to PrivKey at the end
+	privKeyVerByte := append(privKeyPlusVersion, byteone...) // privkey version + privkey hash + extra byte
+	privKeyChecksumComp := s256(s256(privKeyVerByte))[:4]    // first 4 bytes of double hashed (privkey version + privkey hash + extra byte)
+	fmt.Printf("byteone: %d\n", byteone)
+	fmt.Printf("bitcoin version + private key hash + 01 byte: %x   byte length: %d\n", privKeyVerByte, len(privKeyVerByte))
+	fmt.Printf("privKey Checksum for Compressed WIF: %x\n", privKeyChecksumComp)
+
+	privKeyAddChecksum := append(privKeyVerByte, privKeyChecksumComp...) // privkey version + privkey hash + extra byte + last
+	fmt.Printf("Privkey version + privkey hash + extra byte + Compressed Checksum: %x   byte length: %d\n", privKeyAddChecksum, len(privKeyAddChecksum))
+
+	wifCompressed := base58(privKeyAddChecksum)
+	fmt.Println("WIF (Compressed):", wifCompressed, "\n")
 }
