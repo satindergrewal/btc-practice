@@ -257,8 +257,27 @@ func main() {
 	// Mastering Bitcoin example privkey, which has odd public key x value
 	//private_key, ok := private_key.SetString("038109007313a5807b2eccc082c8c3fbb988a973cacf1a7df9ce725c31b1477a", 16)
 
-	passStr := "satinder grewal"                        // Password string or Pass phrase
-	passHash := s256(s256([]byte(passStr)))      // convert passphrase to bytes/uint8 and double hash it with SHA256
+	passStr := "myverysecretandstrongpassphrase_noneabletobrute"                        // Password string or Pass phrase
+	hashByte := s256([]byte(passStr))
+	
+	// The following is the method used by iguana password hashing algorigthm, as shown in existing seed to address/WIF generate examples of PHP and JavaScript
+	// See:
+	//		https://github.com/pbca26/komodolib-js/blob/master/src/keys.js#L94
+	//		https://github.com/DeckerSU/komodo_scripts/blob/master/genkomodo.php#L136
+	// fmt.Println(hashByte)
+	// fmt.Println(hashByte[0] & 248)
+	// fmt.Println(hashByte[31] & 127)
+	// fmt.Println(hashByte[31] | 64)
+	hashByte[0] &= 248
+	// fmt.Println(hashByte[0])
+	hashByte[31] &= 127
+	/fmt.Println(hashByte[31])
+	hashByte[31] |= 64
+	// fmt.Println(hashByte[31])
+	passHash := hashByte
+
+	/// The following passHash is used by the Bitcoin hasing algorithm, as explained in Mastering Bitcoin and othe resources
+	// passHash := s256(s256(hashByte))      // convert passphrase to bytes/uint8 and double hash it with SHA256
 	private_key = private_key.SetBytes(passHash) // Setting passrase hash with SetBytes
 	fmt.Println("Password/Passphrase: ", passStr)
 	fmt.Printf("password hash: %x\n", passHash)
