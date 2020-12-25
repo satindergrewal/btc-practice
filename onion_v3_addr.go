@@ -327,6 +327,7 @@ func main() {
 	onionChecksumBytes.Write([]byte(onionPubKey.(ed25519.PublicKey)))
 	onionChecksumBytes.Write([]byte{0x03})
 	onionChecksum := sha3.Sum256(onionChecksumBytes.Bytes())
+	fmt.Printf("onionChecksum %x\n", onionChecksum)
 
 	// onion_address = base32(pubkey || checksum || version)
 	var onionAddressBytes bytes.Buffer
@@ -335,7 +336,7 @@ func main() {
 	onionAddressBytes.Write([]byte{0x03})
 	onionAddress := base32.StdEncoding.EncodeToString(onionAddressBytes.Bytes())
 
-	// fmt.Println("onionPubKey:", onionPubKey)
+	fmt.Println("onionPubKey:", base32.StdEncoding.EncodeToString([]byte(onionPubKey.(ed25519.PublicKey))))
 	fmt.Println("onionAddress:", strings.ToLower(onionAddress)+".onion", "\n\n")
 
 	/*
