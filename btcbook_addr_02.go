@@ -271,7 +271,7 @@ func main() {
 	hashByte[0] &= 248
 	// fmt.Println(hashByte[0])
 	hashByte[31] &= 127
-	/fmt.Println(hashByte[31])
+	// fmt.Println(hashByte[31])
 	hashByte[31] |= 64
 	// fmt.Println(hashByte[31])
 	passHash := hashByte
